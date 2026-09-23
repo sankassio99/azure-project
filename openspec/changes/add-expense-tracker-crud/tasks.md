@@ -1,27 +1,27 @@
 ## 1. Scaffold Angular Application
 
-- [ ] 1.1 Generate a new Angular 21 standalone application in `webapp/` using the Angular CLI (routing enabled, CSS stylesheets)
-- [ ] 1.2 Verify the app builds and serves with the default starter page
+- [x] 1.1 Generate a new Angular 21 standalone application in `webapp/` using the Angular CLI (routing enabled, CSS stylesheets)
+- [ ] 1.2 Verify the app builds and serves with the default starter page (skipped for this session per user request — no terminal builds)
 
 ## 2. Expense Model & Mock Data
 
-- [ ] 2.1 Create `Expense` interface (`id`, `date`, `value`, `description`, `category`)
-- [ ] 2.2 Create a seeded array of sample mock expenses for initial data
+- [x] 2.1 Create `Expense` interface (`id`, `date`, `value`, `description`, `category`)
+- [x] 2.2 Create a seeded array of sample mock expenses for initial data
 
 ## 3. Mock HTTP Backend
 
-- [ ] 3.1 Implement an `HttpInterceptorFn` that intercepts requests to `/api/expenses` (and `/api/expenses/:id`) for GET, POST, PUT, DELETE
-- [ ] 3.2 Back the interceptor with an in-memory store seeded from the mock data, simulating latency and returning appropriate HTTP status codes
-- [ ] 3.3 Register the interceptor via `provideHttpClient(withInterceptors([...]))` in `app.config.ts`
+- [x] 3.1 Implement an `HttpInterceptorFn` that intercepts requests to `/api/expenses` (and `/api/expenses/:id`) for GET, POST, PUT, DELETE
+- [x] 3.2 Back the interceptor with an in-memory store seeded from the mock data, simulating latency and returning appropriate HTTP status codes
+- [x] 3.3 Register the interceptor via `provideHttpClient(withInterceptors([...]))` in `app.config.ts`
 
 ## 4. Expense Service
 
-- [ ] 4.1 Create `ExpenseService` using `inject(HttpClient)` with a `signal<Expense[]>` cache
-- [ ] 4.2 Implement `list()` to GET `/api/expenses` and populate the signal
-- [ ] 4.3 Implement `add(expense)` to POST a new expense and update the signal
-- [ ] 4.4 Implement `update(expense)` to PUT an updated expense and update the signal
-- [ ] 4.5 Implement `remove(id)` to DELETE an expense and update the signal
-- [ ] 4.6 Implement `getById(id)` helper (via `computed()` over the cached signal or a dedicated GET)
+- [x] 4.1 Create `ExpenseService` using `inject(HttpClient)` with a `signal<Expense[]>` cache
+- [x] 4.2 Implement `list()` to GET `/api/expenses` and populate the signal
+- [x] 4.3 Implement `add(expense)` to POST a new expense and update the signal
+- [x] 4.4 Implement `update(expense)` to PUT an updated expense and update the signal
+- [x] 4.5 Implement `remove(id)` to DELETE an expense and update the signal
+- [x] 4.6 Implement `getById(id)` helper (via `computed()` over the cached signal or a dedicated GET)
 
 ## 5. Routing
 

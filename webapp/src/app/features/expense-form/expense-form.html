@@ -1,0 +1,58 @@
+<section class="expense-form">
+  <h1>{{ isEditMode() ? 'Edit Expense' : 'Add Expense' }}</h1>
+
+  @if (loading()) {
+    <p role="status">Loading expense…</p>
+  } @else if (notFound()) {
+    <p class="expense-form__not-found" role="alert">
+      This expense no longer exists.
+      <button type="button" class="button" (click)="cancel()">Back to list</button>
+    </p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="form-field">
+        <label for="date">Date</label>
+        <input id="date" type="date" formControlName="date" />
+        @if (form.controls.date.invalid && form.controls.date.touched) {
+          <span class="form-error" role="alert">Date is required.</span>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="value">Value</label>
+        <input id="value" type="number" step="0.01" min="0.01" formControlName="value" />
+        @if (form.controls.value.invalid && form.controls.value.touched) {
+          <span class="form-error" role="alert">Enter a value greater than 0.</span>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="description">Description</label>
+        <input id="description" type="text" formControlName="description" />
+        @if (form.controls.description.invalid && form.controls.description.touched) {
+          <span class="form-error" role="alert">Description is required.</span>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="category">Category</label>
+        <select id="category" formControlName="category">
+          <option value="" disabled>Select a category</option>
+          @for (category of categories; track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+        @if (form.controls.category.invalid && form.controls.category.touched) {
+          <span class="form-error" role="alert">Category is required.</span>
+        }
+      </div>
+
+      <div class="expense-form__actions">
+        <button type="button" class="button" (click)="cancel()">Cancel</button>
+        <button type="submit" class="button button--primary" [disabled]="submitting()">
+          {{ isEditMode() ? 'Save Changes' : 'Add Expense' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>
