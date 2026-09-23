@@ -1,0 +1,96 @@
+# Build Folders
+/bin/
+/obj/
+/out/
+
+# Visual Studio temporary files, build results, and
+# user-specific files
+*.user
+*.suo
+*.userprefs
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+*.iml
+*.ipr
+*.iws
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+!**/packages/build/
+!**/packages/repositories.config
+.nuget/
+project.lock.json
+packages.lock.json
+*.snupkg
+
+# Rider caches
+/.idea/
+/*.DotSettings.user
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Publish directory
+/publish/
+/wwwroot/
+
+# Logs
+*.log
+logs/
+
+# Rider and ReSharper
+_ReSharper*/
+*.DotSettings
+_ReSharper.Caches/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~.nib
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Visual Studio code coverage
+*.coverage
+
+# IIS Express
+/.vs/
+
+# Resharper local history
+_ReSharper.Local/
+
+# Azure DevOps pipelines
+.vspscc
+*.orig
+
+# JetBrains Rider caches and history
+.idea/
+*.sln.DotSettings.user
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# dotnet tools
+.tool/

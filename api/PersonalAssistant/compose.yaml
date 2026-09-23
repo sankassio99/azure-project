@@ -1,0 +1,7 @@
+﻿services:
+  personalassistant:
+    image: personalassistant
+    build:
+      context: .
+      dockerfile: PersonalAssistant/Dockerfile
+
