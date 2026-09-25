@@ -20,6 +20,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<PersonalAssistantDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("PersonalAssistantDb")));
 
+var angularDevClient = "AngularDevClient";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(angularDevClient, policy =>
+        policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod());
+});
+
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
@@ -35,6 +42,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(angularDevClient);
 
 app.UseExceptionHandler(errorApp =>
 {
