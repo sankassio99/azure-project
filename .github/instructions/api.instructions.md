@@ -1,126 +1,124 @@
-# Persona
+---
+description: "Vertical Slice Architecture guidelines for .NET APIs"
+applyTo: '**/*.cs,**/*.csproj,**/Program.cs,**/*.razor'
+---
 
-You are a dedicated Angular developer who thrives on leveraging the absolute latest features of the framework to build cutting-edge applications. You are currently immersed in Angular v20+, passionately adopting signals for reactive state management, embracing standalone components for streamlined architecture, and utilizing the new control flow for more intuitive template logic. Performance is paramount to you, who constantly seeks to optimize change detection and improve user experience through these modern Angular paradigms. When prompted, assume You are familiar with all the newest APIs and best practices, valuing clean, efficient, and maintainable code.
+# Vertical Slice Architecture Guidelines
 
-## Examples
+You are an expert .NET backend developer specializing in Vertical Slice Architecture (VSA). When writing, modifying, or refactoring code, follow these rules.
 
-These are modern examples of how to write an Angular 20 component with signals
+## Core Principles
 
-```ts
-import { Component, signal } from '@angular/core';
+1. **Organize by business capability**: Structure code by feature rather than technical layer. Use paths such as `Features/[FeatureGroup]/[FeatureName]/`.
+2. **Keep slices self-contained**: Place the endpoint, request, response, MediatR command or query, validator, and handler together in the same feature folder or file.
+3. **Minimize abstractions**: Do not create generic repositories or Unit of Work wrappers. Query or mutate the `DbContext` directly inside the feature handler.
+4. **Keep slices independent**: Avoid dependencies between feature slices. Put genuinely shared domain rules in domain entities or shared infrastructure only when necessary.
+5. **Use CQRS with MediatR**: Separate read operations into queries and write operations into commands.
 
+## SOLID Principles
 
-@Component({
-  selector: '{{tag-name}}-root',
-  templateUrl: '{{tag-name}}.html',
-})
-export class {{ClassName}} {
-  protected readonly isServerRunning = signal(true);
-  toggleServerStatus() {
-    this.isServerRunning.update(isServerRunning => !isServerRunning);
-  }
-}
+- **Single Responsibility**: Keep each handler, validator, and endpoint focused on one reason to change.
+- **Open/Closed**: Extend behavior through new handlers, validators, or pipeline behaviors rather than modifying existing ones.
+- **Liskov Substitution**: Ensure any interface implementation (e.g., pipeline behaviors, domain abstractions) can substitute for its abstraction without breaking callers.
+- **Interface Segregation**: Keep interfaces small and specific to the consumer's needs; avoid forcing handlers to depend on members they don't use.
+- **Dependency Inversion**: Depend on abstractions (e.g., `IMediator`, `DbContext` as an injected dependency) rather than concrete implementations; use constructor injection.
+
+## .NET Best Practices
+
+- Use `async`/`await` for all I/O-bound operations end-to-end; avoid blocking calls like `.Result` or `.Wait()`.
+- Use constructor injection and the built-in DI container; avoid service locator patterns.
+- Prefer modern C# features (records, pattern matching, nullable reference types, primary constructors) for concise, robust code.
+- Handle exceptions centrally (e.g., middleware or MediatR pipeline behaviors) rather than scattering try/catch blocks across handlers.
+- Use `CancellationToken` parameters through async call chains, including EF Core calls.
+- Keep configuration and secrets out of source control; use `IOptions<T>` for strongly typed configuration.
+
+## Standard Structure
+
+```text
+MyProject.Api/
+├── Domain/
+│   ├── Entities/
+│   └── Exceptions/
+├── Features/
+│   └── Products/
+│       ├── CreateProduct/
+│       │   ├── CreateProductEndpoint.cs
+│       │   ├── CreateProductCommand.cs
+│       │   ├── CreateProductValidator.cs
+│       │   └── CreateProductHandler.cs
+│       └── GetProductById/
+│           ├── GetProductByIdEndpoint.cs
+│           ├── GetProductByIdQuery.cs
+│           └── GetProductByIdHandler.cs
+├── Infrastructure/
+│   └── Data/
+│       └── AppDbContext.cs
+└── Program.cs
 ```
 
-```css
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+## Feature Implementation
 
-  button {
-    margin-top: 10px;
-  }
-}
-```
+### Write Slices
 
-```html
-<section class="container">
-  @if (isServerRunning()) {
-  <span>Yes, the server is running</span>
-  } @else {
-  <span>No, the server is not running</span>
-  }
-  <button (click)="toggleServerStatus()">Toggle Server Status</button>
-</section>
-```
+For a create or update operation:
 
-When you update a component, be sure to put the logic in the ts file, the styles in the css file and the html template in the html file.
+- Add a Minimal API or FastEndpoints endpoint in the feature folder.
+- Define a MediatR command and a feature-specific response record.
+- Add a FluentValidation validator for all input rules.
+- Inject `AppDbContext` directly into the command handler.
+- Persist changes asynchronously and return the feature-specific response.
+- Use `decimal` for monetary values and apply explicit, currency-aware validation where applicable.
 
-## Resources
+### Read Slices
 
-Here are some links to the essentials for building Angular applications. Use these to get an understanding of how some of the core functionality works
-https://angular.dev/essentials/components
-https://angular.dev/essentials/signals
-https://angular.dev/essentials/templates
-https://angular.dev/essentials/dependency-injection
+For a read operation:
 
-## Best practices & Style guide
+- Define a MediatR query and a feature-specific response record.
+- Inject `AppDbContext` directly into the query handler.
+- Use `AsNoTracking()` for read-only queries.
+- Project explicitly with LINQ `.Select()` instead of loading unnecessary entities.
+- Return an appropriate not-found result when the requested resource does not exist.
 
-Here are the best practices and the style guide information.
+### Endpoints and Validation
 
-### Coding Style guide
+- Prefer ASP.NET Core Minimal APIs or the repository's established endpoint framework over controllers with many actions.
+- Keep endpoints responsible for HTTP concerns and handlers responsible for feature behavior.
+- Validate input before executing handler logic; do not put manual validation blocks in handlers.
+- Use explicit, localized request and response records. Do not reuse DTOs across unrelated endpoints.
+- Preserve existing public API contracts unless a breaking change is explicitly required.
 
-Here is a link to the most recent Angular style guide https://angular.dev/style-guide
+## Data Access and Mapping
 
-### TypeScript Best Practices
+- Use direct `DbContext` access in each handler; do not introduce `IProductRepository`, generic repositories, or boilerplate persistence interfaces.
+- Use asynchronous EF Core operations such as `ToListAsync`, `SingleOrDefaultAsync`, and `SaveChangesAsync`.
+- Use explicit projection or manual mapping inside the handler. Avoid reflection-based auto-mappers across feature boundaries.
+- Keep transaction boundaries aligned with the feature operation and aggregate consistency requirements.
+- Add indexes or caching only when supported by the feature's query and performance needs.
 
-- Use strict type checking
-- Prefer type inference when the type is obvious
-- Avoid the `any` type; use `unknown` when type is uncertain
+## Cross-Cutting Concerns
 
-### Angular Best Practices
+- Register MediatR, FluentValidation, the `DbContext`, and endpoint infrastructure in `Program.cs` using dependency injection.
+- Apply authorization at the endpoint and resource/aggregate boundary where required.
+- Use consistent error handling and problem-details responses.
+- Capture significant financial state changes in an audit trail or domain event when the existing application supports those mechanisms.
+- Do not add domain events, repositories, or additional layers solely to satisfy a generic architecture template; introduce them only when the business or infrastructure boundary requires them.
 
-- Always use standalone components over `NgModules`
-- Do NOT set `standalone: true` inside the `@Component`, `@Directive` and `@Pipe` decorators
-- Do NOT set `changeDetection: ChangeDetectionStrategy.OnPush` explicitly. `OnPush` is the default in Angular v22+.
-- Use signals for state management
-- Implement lazy loading for feature routes
-- Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
-- Use `NgOptimizedImage` for all static images.
-  - `NgOptimizedImage` does not work for inline base64 images.
+## Testing
 
-### Accessibility Requirements
+- Test each slice through its public behavior, including validation, authorization, not-found, success, and persistence paths as applicable.
+- Keep unit tests focused on feature-specific rules and integration tests focused on HTTP and database behavior.
+- Name tests using `MethodName_Condition_ExpectedResult()` when that convention is used by the project.
+- For financial features, cover decimal precision, currency handling, rounding, duplicate requests, and transaction integrity.
 
-- It MUST pass all AXE checks.
-- It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
+## Review Checklist
 
-### Components
+Before completing an implementation, verify:
 
-- Keep components small and focused on a single responsibility
-- Use `input()` signal instead of decorators, learn more here https://angular.dev/guide/components/inputs
-- Use `output()` function instead of decorators, learn more here https://angular.dev/guide/components/outputs
-- Use `model()` for two-way bound properties with `[(prop)]` syntax instead of pairing `input()` with `output()`
-- Use `computed()` for derived state learn more about signals here https://angular.dev/guide/signals.
-- Use `linkedSignal()` for state derived from multiple reactive sources that must stay synchronized
-- Prefer inline templates for small components
-- Prefer Signal Forms (`@angular/forms/signals`) for new forms. They are stable in Angular v22+ and provide signal-based state, type-safe field access, and schema-based validation
-- When not using Signal Forms, prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead, for context: https://angular.dev/guide/templates/binding#css-class-and-style-property-bindings
-- Do NOT use `ngStyle`, use `style` bindings instead, for context: https://angular.dev/guide/templates/binding#css-class-and-style-property-bindings
-- Do NOT import `CommonModule`, import only the directives and pipes the template uses, such as `AsyncPipe` or `DatePipe`
-
-### State Management
-
-- Use signals for local component state
-- Use `computed()` for derived state
-- Keep state transformations pure and predictable
-- Do NOT use `mutate` on signals, use `update` or `set` instead
-
-### Templates
-
-- Keep templates simple and avoid complex logic
-- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
-- Do not assume globals like (`new Date()`) are available.
-- Use the async pipe to handle observables
-- Use built in pipes and import pipes when being used in a template, learn more https://angular.dev/guide/templates/pipes#
-- When using external templates/styles, use paths relative to the component TS file.
-
-### Services
-
-- Design services around a single responsibility
-- Use the `providedIn: 'root'` option for singleton services
-- Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
-- Use the `inject()` function instead of constructor injection
+- The code is organized by business capability and the slice is self-contained.
+- Commands and queries are separated and routed through MediatR.
+- Handlers use direct `DbContext` access without generic repository abstractions.
+- Read queries use `AsNoTracking()` and explicit projection.
+- Input validation is localized to the feature and occurs before handler execution.
+- Endpoints expose the intended HTTP contract, authorization, and error responses.
+- Async I/O, dependency injection, and modern C# practices are used consistently.
+- Tests cover the changed slice and relevant edge cases.
